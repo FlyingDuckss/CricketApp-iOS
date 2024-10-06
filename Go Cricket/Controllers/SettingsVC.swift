@@ -16,7 +16,6 @@ class SettingsVC: UIViewController {
         logoutBtn.tintColor = ButtonColor
         logoutBtn.layer.cornerRadius = 10
         
-        self.tabBarItem = UITabBarItem(title: "", image: UIImage(named: "setting_icon_unselected"), selectedImage: UIImage(named: "setting_icon_selected"))
         view.backgroundColor = .black
     }
     

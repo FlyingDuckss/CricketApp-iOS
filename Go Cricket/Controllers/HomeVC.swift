@@ -39,7 +39,6 @@ class HomeVC: UIViewController {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        self.tabBarItem = UITabBarItem(title: "", image: UIImage(named: "home_icon_unselected"), selectedImage: UIImage(named: "home_icon_selected"))
         exploreCollectionView.delegate = self
         exploreCollectionView.dataSource = self
         

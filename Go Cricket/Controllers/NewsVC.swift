@@ -18,7 +18,6 @@ class NewsVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.tabBarItem = UITabBarItem(title: "", image: UIImage(named: "news_icon_unselected"), selectedImage: UIImage(named: "news_icon_selected"))
         view.backgroundColor = .black
         ProgressHUD.animate("Please wait...", .ballVerticalBounce)
         
