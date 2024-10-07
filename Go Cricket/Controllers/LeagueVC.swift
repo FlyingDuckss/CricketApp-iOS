@@ -10,6 +10,7 @@ import UIKit
 class LeagueVC: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
+    let refreshControl = UIRefreshControl()
     var data: [Data] = []
     
     override func viewDidLoad() {
@@ -21,11 +22,19 @@ class LeagueVC: UIViewController {
 
         tableView.delegate = self
         tableView.dataSource = self
+        refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
+        refreshControl.addTarget(self, action: #selector(self.refresh), for: .valueChanged)
+        tableView.addSubview(refreshControl) //
+        fetchLatestMatches()
+    }
+    
+    @objc func refresh() {
+        ProgressHUD.animate("Please wait...", .ballVerticalBounce)
         fetchLatestMatches()
     }
     
     func fetchLatestMatches() {
-        
+        data.removeAll()
         let urlString = "https://api.cricapi.com/v1/currentMatches?apikey=\(API_KEY)&offset=0"
 
         if let url = URL(string: urlString) {
@@ -37,6 +46,7 @@ class LeagueVC: UIViewController {
                     self.data = team.data ?? []
                     DispatchQueue.main.async(execute: {
                         self.tableView.reloadData()
+                        self.refreshControl.endRefreshing()
                         ProgressHUD.dismiss()
 
                     })

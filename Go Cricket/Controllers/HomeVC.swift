@@ -55,8 +55,8 @@ class HomeVC: UIViewController {
         self.latestMatchView.layer.cornerRadius = 10
         latestMatchView.layer.borderWidth = 2
         latestMatchView.layer.borderColor = UIColor(hexString: "676767")!.cgColor
-        
-        
+        self.teamImageOne.layer.cornerRadius = 10
+        self.teamImageTwo.layer.cornerRadius = 10
         
         
         let urlString = "https://api.cricapi.com/v1/currentMatches?apikey=\(API_KEY)&offset=0"
@@ -74,18 +74,17 @@ class HomeVC: UIViewController {
                         self.teamNameOne.text = self.data?.teams?[0]
                         self.teamNameTwo.text = self.data?.teams?[1]
                         
-                        if self.data?.score?.count == 1 {
+                        if let temp = self.data?.score?[0] {
                             self.teamScoreOne.text  = "\(self.data?.score?[0].r ?? 0)-\(self.data?.score?[0].o ?? 0)"
                         } else {
                             self.teamScoreOne.text = "0-0"
                         }
-                        
-                        if self.data?.score?.count == 2 {
+                    
+                        if let temp = self.data?.score?[1] {
                             self.teamScoreTwo.text = "\(self.data?.score?[1].r ?? 0)-\(self.data?.score?[1].o ?? 0)"
                         } else {
                             self.teamScoreTwo.text = "0-0"
                         }
-                        
                         self.teamImageOne.sd_setImage(with: URL(string: (self.data?.teamInfo?[0].img)!))
                         self.teamImageTwo.sd_setImage(with: URL(string: (self.data?.teamInfo?[1].img)!))
                     })

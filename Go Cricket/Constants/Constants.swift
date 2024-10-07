@@ -10,6 +10,8 @@ import UIKit
 let ButtonColor = UIColor(hexString: "FFDA3A")
 let userDefaults = UserDefaults.standard
 
+let MATCH_DETAIL = ["Summary", "Fan Poll", "Comment"]
+
 //UserDefaults Constants
 let USER_UID = "USER_UID"
 let IS_LOGGEDIN = "IS_LOGGEDIN"
@@ -20,3 +22,4 @@ let offset = 0
 
 // Create an instance of NetworkManager with headers
 let networkManager = NetworkManager(apiKey: API_KEY, offset: offset)
+

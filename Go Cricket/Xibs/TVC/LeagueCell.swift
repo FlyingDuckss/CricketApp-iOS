@@ -39,6 +39,8 @@ class LeagueCell: UITableViewCell {
         contentView.backgroundColor = .black
         
         self.data = data
+        self.teamImageOne.layer.cornerRadius = 10
+        self.teamImageTwo.layer.cornerRadius = 10
         
         self.matchTitile.text = self.data?.name
         
