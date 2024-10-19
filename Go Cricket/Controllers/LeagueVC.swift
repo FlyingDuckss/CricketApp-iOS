@@ -30,7 +30,7 @@ class LeagueVC: UIViewController {
     
     @objc func refresh() {
         ProgressHUD.animate("Please wait...", .ballVerticalBounce)
-        fetchLatestMatches()
+        fetchLatestMatches() 
     }
     
     func fetchLatestMatches() {

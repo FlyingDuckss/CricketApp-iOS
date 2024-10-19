@@ -6,9 +6,13 @@
 //
 
 import UIKit
+import FirebaseDatabaseInternal
 
 class MatchDetailVC: UIViewController {
 
+    var comments: [Comment] = []
+    let database = Database.database().reference()
+    
     @IBOutlet weak var collectionView: UICollectionView!
     
     @IBOutlet weak var topParentView: UIView!
@@ -28,6 +32,13 @@ class MatchDetailVC: UIViewController {
     @IBOutlet weak var statusLbl: UILabel!
     @IBOutlet weak var matchTypeLbl: UILabel!
     
+    //MARK: Comment View outlets
+    @IBOutlet weak var commentContainerView: UIView!
+    @IBOutlet weak var matchCommentView: UIView!
+    @IBOutlet weak var commentTextField: UITextField!
+    @IBOutlet weak var commentsTableView: UITableView!
+    @IBOutlet weak var commentSendBtn: UIButton!
+    
     
     @IBOutlet weak var matchSummaryView: UIView!
     
@@ -41,9 +52,36 @@ class MatchDetailVC: UIViewController {
         
         collectionView.delegate = self
         collectionView.dataSource = self
+        commentsTableView.dataSource = self
+        commentsTableView.delegate = self
         
         initTopViewData()
         initBottomViewData()
+        initCommentView()
+        
+        matchCommentView.isHidden = true
+        
+        fetchComments { _ in
+            DispatchQueue.main.async(execute: {
+                self.commentsTableView.reloadData()
+            })
+        }
+    }
+    
+    func scrollToBottom() {
+        DispatchQueue.main.async(execute: {
+            guard self.comments.count > 0 else { return }
+            let lastRowIndex = self.comments.count - 1
+            let indexPath = IndexPath(row: lastRowIndex, section: 0)
+            self.commentsTableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+        })
+        }
+    
+    func initCommentView() {
+        commentContainerView.layer.shadowOpacity = 0.7
+        commentContainerView.layer.shadowOffset = CGSize(width: 3, height: 3)
+        commentContainerView.layer.shadowRadius = 15.0
+        commentContainerView.layer.shadowColor = UIColor(hexString: "FFDA3A")?.cgColor
     }
     
     func initTopViewData() {
@@ -83,6 +121,36 @@ class MatchDetailVC: UIViewController {
     @IBAction func closeBtnClicked(_ sender: Any) {
         self.dismiss(animated: true)
     }
+    
+    func navigateToScreen(index: Int) {
+        switch index {
+        case 0:
+            matchSummaryView.isHidden = false
+            matchCommentView.isHidden = true
+            break
+        case 1:
+            matchSummaryView.isHidden = true
+            matchCommentView.isHidden = true
+            break
+        case 2:
+            matchSummaryView.isHidden = true
+            matchCommentView.isHidden = true
+            break
+        case 3:
+            matchSummaryView.isHidden = true
+            matchCommentView.isHidden = false
+            break
+        default:
+            break
+        }
+    }
+    
+    @IBAction func sendCommentBtnClicked(_ sender: Any) {
+        let comment =  Comment(userName: userDefaults.string(forKey: USER_NAME) ?? UUID().uuidString, text: self.commentTextField.text!)
+        self.commentTextField.text = ""
+        self.addComment(comment: comment)
+        
+    }
 }
 
 extension MatchDetailVC: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -101,7 +169,7 @@ extension MatchDetailVC: UICollectionViewDelegate, UICollectionViewDataSource, U
         cell.detailLbl.textColor = .white
         if indexPath.row == 0 {
             cell.detailLbl.font = UIFont.boldSystemFont(ofSize:  cell.detailLbl.font.pointSize)
-
+            cell.detailLbl.textColor = UIColor(hexString: "FFDA3A")
         }
         
         return cell
@@ -111,6 +179,7 @@ extension MatchDetailVC: UICollectionViewDelegate, UICollectionViewDataSource, U
         let cell = collectionView.cellForItem(at: indexPath) as! MatchDetailCVC
         cell.detailLbl.textColor = UIColor(hexString: "FFDA3A")
         cell.detailLbl.font = UIFont.boldSystemFont(ofSize:  cell.detailLbl.font.pointSize)
+        navigateToScreen(index: indexPath.row)
     }
     
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
@@ -121,6 +190,79 @@ extension MatchDetailVC: UICollectionViewDelegate, UICollectionViewDataSource, U
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: (collectionView.frame.width/3) - 10, height: collectionView.frame.height)
+        return CGSize(width: (collectionView.frame.width/4) - 10, height: collectionView.frame.height)
+    }
+}
+
+
+
+
+//MARK: Comment section implementation
+extension MatchDetailVC: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return comments.count
+    }
+    
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "CommentCell", for: indexPath) as? CommentCell {
+            cell.selectionStyle = .none
+            cell.initCellData(userName: comments[indexPath.row].userName, comment: comments[indexPath.row].text)
+            return cell
+        }
+        return UITableViewCell()
+    }
+    
+    
+    
+    
+    func fetchComments(completion: @escaping ([Comment]) -> Void) {
+        database.child("Matches").child((data?.id)!).child("comments").observe(.childAdded) { (snapshot) in
+            if let commentData = snapshot.value as? [String: Any],
+               let id = commentData["userName"] as? String,
+               let text = commentData["text"] as? String {
+                let comment = Comment(userName: id, text: text)
+                self.comments.append(comment)
+                DispatchQueue.main.async(execute: {
+                    self.commentsTableView.reloadData()
+                })
+            }
+        }
+        
+        
+        database.child("Matches").child((data?.id)!).child("comments").observeSingleEvent(of: .value) { snapshot in
+            for child in snapshot.children {
+                if let snapshot = child as? DataSnapshot,
+                   let commentData = snapshot.value as? [String: Any],
+                   let id = commentData["userName"] as? String,
+                   let text = commentData["text"] as? String {
+                    let comment = Comment(userName: id, text: text)
+                    self.comments.append(comment)
+                }
+            }
+            completion(self.comments)
+        }
+    }
+    
+    func addComment(text: String) {
+        let comment = Comment(userName: userDefaults.string(forKey: USER_NAME)!, text: text)
+        self.addComment(comment: comment)
+        self.fetchComments(completion: {_ in 
+            DispatchQueue.main.async(execute: {
+                self.commentsTableView.reloadData()
+            })
+        }) // Refresh comments after adding a new one
+    }
+    
+    func addComment(comment: Comment) {
+        let commentData = [
+            "userName": comment.userName,
+            "text": comment.text
+        ] as [String : Any]
+        
+        database.child("Matches").child((data?.id)!).child("comments").child(UUID().uuidString).setValue(commentData)
+        DispatchQueue.main.async(execute: {
+            self.commentsTableView.reloadData()
+        })
     }
 }

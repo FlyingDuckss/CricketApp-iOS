@@ -64,6 +64,8 @@ class LoginVC: UIViewController {
                     // Login successful
                     if let _ = authResult?.user {
                         userDefaults.set(true, forKey: IS_LOGGEDIN)
+                        userDefaults.setValue(authResult?.user.uid, forKey: USER_UID)
+                        userDefaults.setValue(authResult?.user.displayName, forKey: USER_NAME)
                         
                         let storyboard = UIStoryboard(name: "Main", bundle: nil)
                         let vc = storyboard.instantiateViewController(withIdentifier: "TabBarController")

@@ -117,6 +117,8 @@ class SignupVC: UIViewController {
             
             let userData: [String: String] = ["uid": result?.user.uid ?? "", "email": result?.user.email ?? ""]
             userDefaults.setValue(result?.user.uid, forKey: USER_UID)
+            userDefaults.setValue(self.nameTextField.text!, forKey: USER_NAME)
+            userDefaults.set(true, forKey: IS_LOGGEDIN)
             print("User signed up successfully: \(String(describing: result?.user.email))")
             let databaseRef = Database.database().reference()
             databaseRef.child("users").child(result?.user.uid ?? "").setValue(userData)
